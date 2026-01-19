@@ -1,0 +1,97 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: pubky-homeserver_dashboard_1
+      APP_PORT: 3000
+
+  postgres:
+    image: postgres:17-alpine@sha256:ff4ccc02b97e0ebb6b328ef9ff92522f95586f83be6801896b615088defc8ad2
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      POSTGRES_USER: pubky
+      POSTGRES_PASSWORD: ${APP_PASSWORD}
+      POSTGRES_DB: pubky_homeserver
+    volumes:
+      - ${APP_DATA_DIR}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pubky -d pubky_homeserver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  homeserver:
+    image: smz9hykx/pubky-homeserver:latest@sha256:f5ac86112ebc8957d03ef9d563ddcb9fb1639e747f653c29a833fc0b377613fb
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/homeserver:/data
+    environment:
+      DATA_DIR: /data
+      POSTGRES_PASSWORD: ${APP_PASSWORD}
+      ADMIN_PASSWORD: ${APP_PASSWORD}
+    ports:
+      - "6286:6286"
+      - "6287:6287"
+      - "6288:6288"
+      - "6289:6289"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      # Generate config.toml if it doesn't exist
+      if [ ! -f /data/config.toml ]; then
+        cat > /data/config.toml <<EOF
+      [general]
+      signup_mode = \"token_required\"
+      user_storage_quota_mb = 0
+      database_url = \"postgres://pubky:$${POSTGRES_PASSWORD}@postgres:5432/pubky_homeserver\"
+      
+      [drive]
+      pubky_listen_socket = \"0.0.0.0:6287\"
+      icann_listen_socket = \"0.0.0.0:6286\"
+      
+      [storage]
+      type = \"file_system\"
+      
+      [admin]
+      enabled = true
+      listen_socket = \"0.0.0.0:6288\"
+      admin_password = \"$${ADMIN_PASSWORD}\"
+      
+      [metrics]
+      enabled = true
+      listen_socket = \"0.0.0.0:6289\"
+      
+      [pkdns]
+      public_ip = \"127.0.0.1\"
+      icann_domain = \"localhost\"
+      user_keys_republisher_interval = 14400
+      dht_relay_nodes = [\"https://pkarr.pubky.app\", \"https://pkarr.pubky.org\"]
+      
+      [logging]
+      level = \"info\"
+      module_levels = [\"pubky_homeserver=debug\", \"tower_http=debug\"]
+      EOF
+      fi
+      # Start homeserver
+      homeserver
+      "
+
+  dashboard:
+    image: smz9hykx/homeserver-dashboard:latest@sha256:08f53369b0425b58e7ccc4ab7aeada955595d9b6bf3c78b0e680841cc504518f
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      # Connect to homeserver via Docker service name
+      NEXT_PUBLIC_ADMIN_BASE_URL: http://homeserver:6288
+      NEXT_PUBLIC_ADMIN_TOKEN: ${APP_PASSWORD}
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      - homeserver
+    # No ports exposed - uses app_proxy instead
