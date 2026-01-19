@@ -8,7 +8,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   ollama:
-    image: ollama/ollama:0.12.10@sha256:e8c3d1f6ad16323bc40dc63eff0701d4fc32113f75a86b54b3e836eef8290de6
+    image: ollama/ollama:0.14.1@sha256:ab381bda4be8e04790e32551fac37f209fe0bb12ab49ba4b7c32d0f0800cf4c3
     environment:
       OLLAMA_ORIGINS: "*"
       OLLAMA_CONTEXT_LENGTH: 8192

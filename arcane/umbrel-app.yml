@@ -2,7 +2,7 @@ manifestVersion: 1
 id: arcane
 category: developer
 name: Arcane
-version: "1.11.3"
+version: "1.13.0"
 tagline: An easy and modern Docker management platform
 description: >-
   ⚠️ Make sure to only use named Docker volumes for your containers and projects. Data in bind-mounted volumes will be lost when the Arcane app is restarted or updated.
@@ -48,34 +48,23 @@ path: ""
 defaultUsername: "arcane"
 defaultPassword: "arcane-admin"
 releaseNotes: >-
-  ⚠️ IMPORTANT: This update changes the auto updater label from `com.ofkm.arcane.updater` to `com.getarcaneapp.arcane.updater`.
+  ⚠️ This update patches a security vulnerability.
 
 
   Key highlights in this release include:
-    - API key authentication support
-    - New Arcane CLI tool for command-line management
-    - Container update indicators directly in the table
-    - Inline start and stop functions for containers
-    - IP address column in container table
-    - Ability to toggle between classic project and tree view
-    - New environment switcher dialog
-    - Improved Monaco editor with better IntelliSense
-    - GPU monitoring environment flags
-    - Dynamic OIDC redirect URL based on origin
+    - Bulk actions for containers and projects
+    - Auto-prune and prune scheduler job
+    - Project status filter selector
+    - JSON parsing and structured log display
+    - Sensitive environment variables can now be read from files
 
 
   Bug fixes and improvements:
-    - Fixed checkbox appearance inconsistencies between UI modes
-    - Resolved inconsistent sorting on database resources
-    - Added confirmation dialog when removing volumes
-    - Fixed environment selector on error pages
-    - Added option to skip TLS verification for OIDC endpoints
-    - Fixed notifications on remote environments using incorrect URLs
-    - Improved handling of project objects during startup
-    - Fixed dashboard memory usage display
-    - Resolved environment page hanging issues
-    - Fixed auto updater issues with certain network modes
-    - Improved mobile layout and performance
+    - Fixed network overview not reloading with new data
+    - Fixed git sync interval being incorrect
+    - Fixed unable to save environment variables in git synced projects
+    - Fixed invalid API input for container creation
+    - Fixed margin not being applied on resource pages
 
 
   Full release notes are found at https://github.com/getarcaneapp/arcane/releases

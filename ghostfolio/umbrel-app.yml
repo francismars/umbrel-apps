@@ -2,7 +2,7 @@ manifestVersion: 1
 id: ghostfolio
 category: finance
 name: Ghostfolio
-version: "2.228.0"
+version: "2.230.0"
 tagline: Manage your wealth like a boss
 description: >-
   Ghostfolio is a privacy-first, open source dashboard for your personal finances.
@@ -33,17 +33,11 @@ path: ""
 deterministicPassword: false
 torOnly: false
 releaseNotes: >-
-  This release includes several improvements and new features:
-    - Extended the portfolio holdings to include performance with currency effects for cash positions
-    - Added a new endpoint to get all platforms
-    - Integrated the platforms endpoint into the create or update account dialog
-    - Extracted the scraper configuration to a dedicated tab in the asset profile details dialog
-
-
-  UI and functionality enhancements:
-    - Improved the routing of the user detail dialog in the users section
-    - Improved the table headers' alignment of the accounts table on mobile
-    - Improved the language localization for German
+  This release includes several improvements and bug fixes:
+    - Added language localization support for Korean
+    - Restored support for specific calendar year date ranges in the holdings table
+    - Fixed the total fee calculation in the holding detail dialog for activities in custom currencies
+    - Fixed the total fee calculation in the summary for activities in custom currencies
 
 
   Full release notes are found at https://github.com/ghostfolio/ghostfolio/releases
