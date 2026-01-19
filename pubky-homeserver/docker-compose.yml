@@ -1,0 +1,67 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: pubky-homeserver_web_1
+      APP_PORT: 8812
+
+  postgres:
+    image: postgres:17-alpine@sha256:ff4ccc02b97e0ebb6b328ef9ff92522f95586f83be6801896b615088defc8ad2
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      POSTGRES_USER: pubky
+      POSTGRES_PASSWORD: ${APP_PASSWORD}
+      POSTGRES_DB: pubky_homeserver
+    volumes:
+      - ${APP_DATA_DIR}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pubky -d pubky_homeserver"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  homeserver:
+    image: smz9hykx/pubky-homeserver:latest@sha256:ad8c4d5a2d9c3fd1b5c77c165fcc43ecf4a6997309eeb0f3fe7e097bed81841c
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/homeserver:/data
+    environment:
+      DATA_DIR: /data
+      POSTGRES_PASSWORD: ${APP_PASSWORD}
+      ADMIN_PASSWORD: ${APP_PASSWORD}
+    ports:
+      - "6286:6286"
+      - "6287:6287"
+      - "6288:6288"
+      - "6289:6289"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 6288 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    # Entrypoint script in Dockerfile handles config creation and user switching
+
+  web:
+    image: smz9hykx/homeserver-dashboard:latest@sha256:307b26b2463ef33ea6b7a57346e85a6f368a17ef9305497f1ed25b22f8166770
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      # Server-only env vars (read by API routes, never exposed to client)
+      ADMIN_BASE_URL: http://homeserver:6288
+      ADMIN_TOKEN: ${APP_PASSWORD}
+      # Legacy support (not used anymore, but kept for compatibility)
+      NEXT_PUBLIC_ADMIN_BASE_URL: ""
+      NEXT_PUBLIC_ADMIN_TOKEN: ""
+      PORT: 8812
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      homeserver:
+        condition: service_started
+    # No ports exposed - uses app_proxy instead
