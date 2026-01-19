@@ -8,7 +8,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   app:
-    image: ghcr.io/endurain-project/endurain:v0.16.4@sha256:8920ec8b3a51a754569376154edc627550f610fb5dca92fcc825585b9d9b6ca7
+    image: ghcr.io/endurain-project/endurain:v0.16.6@sha256:05bf60d33ae7fe1ce2402d1c6d8bb5a803a549b3a5fff0bcd65be7a804f3b7c1
     environment:
       UID: "1000"
       GID: "1000"
