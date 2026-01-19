@@ -23,7 +23,7 @@ services:
       retries: 5
 
   homeserver:
-    image: smz9hykx/pubky-homeserver:latest@sha256:ad8c4d5a2d9c3fd1b5c77c165fcc43ecf4a6997309eeb0f3fe7e097bed81841c
+    image: smz9hykx/pubky-homeserver:latest@sha256:1cadba7dc1d6c5ad67df19adc0b1b132a852795103c473b85c8ab20da025a50f
     restart: on-failure
     stop_grace_period: 1m
     volumes:
