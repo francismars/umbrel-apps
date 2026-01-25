@@ -23,7 +23,7 @@ services:
       retries: 5
 
   homeserver:
-    image: smz9hykx/pubky-homeserver:latest@sha256:1cadba7dc1d6c5ad67df19adc0b1b132a852795103c473b85c8ab20da025a50f
+    image: smz9hykx/pubky-homeserver:latest@sha256:6ae4b256bc30a37973d190acd089f348c4abb7b428a1f2b11766457bca87c8bd
     restart: on-failure
     stop_grace_period: 1m
     volumes:
@@ -49,16 +49,13 @@ services:
     # Entrypoint script in Dockerfile handles config creation and user switching
 
   web:
-    image: smz9hykx/homeserver-dashboard:latest@sha256:307b26b2463ef33ea6b7a57346e85a6f368a17ef9305497f1ed25b22f8166770
+    image: smz9hykx/homeserver-dashboard:latest@sha256:acbdbbd6953cf371398c89d1b4a06550fdc99a4633ab76d0cff91cbbbb152e2f
     restart: on-failure
     stop_grace_period: 1m
     environment:
       # Server-only env vars (read by API routes, never exposed to client)
       ADMIN_BASE_URL: http://homeserver:6288
       ADMIN_TOKEN: ${APP_PASSWORD}
-      # Legacy support (not used anymore, but kept for compatibility)
-      NEXT_PUBLIC_ADMIN_BASE_URL: ""
-      NEXT_PUBLIC_ADMIN_TOKEN: ""
       PORT: 8812
       HOSTNAME: "0.0.0.0"
     depends_on:
