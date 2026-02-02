@@ -49,7 +49,7 @@ services:
     # Entrypoint script in Dockerfile handles config creation and user switching
 
   web:
-    image: smz9hykx/homeserver-dashboard:latest@sha256:c60303be564eef782ac2ff62562cd72f860f48310e8571c859436db12850616e
+    image: smz9hykx/homeserver-dashboard:latest@sha256:c2e014fbcaac9f8fe593f5b68943e04040bfff59be21ba5214ab2984723e2f97
     restart: on-failure
     stop_grace_period: 1m
     environment:
