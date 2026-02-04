@@ -32,6 +32,7 @@ services:
       DATA_DIR: /data
       POSTGRES_PASSWORD: ${APP_PASSWORD}
       ADMIN_PASSWORD: ${APP_PASSWORD}
+      CLOUDFLARE_DOMAIN: ${CLOUDFLARE_DOMAIN:-}
     ports:
       - "6286:6286"
       - "6287:6287"
@@ -62,3 +63,15 @@ services:
       homeserver:
         condition: service_started
     # No ports exposed - uses app_proxy instead
+
+  # Optional. Set CLOUDFLARE_TUNNEL_TOKEN and CLOUDFLARE_DOMAIN; route hostname to http://homeserver:6286 in Cloudflare.
+  cloudflared:
+    image: cloudflare/cloudflared:2025.2.1
+    restart: on-failure
+    stop_grace_period: 1m
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    environment:
+      TUNNEL_LOGLEVEL: info
+    depends_on:
+      homeserver:
+        condition: service_started
