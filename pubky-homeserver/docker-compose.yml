@@ -23,11 +23,12 @@ services:
       retries: 5
 
   homeserver:
-    image: smz9hykx/pubky-homeserver:latest@sha256:6ae4b256bc30a37973d190acd089f348c4abb7b428a1f2b11766457bca87c8bd
+    image: smz9hykx/pubky-homeserver:latest@sha256:d33a7c1b566aad1f27276ee434007d3498aa6c9f0e0e20059a703a2feb86b186
     restart: on-failure
     stop_grace_period: 1m
     volumes:
       - ${APP_DATA_DIR}/homeserver:/data
+      - ${APP_DATA_DIR}/cloudflare:/etc/pubky-cloudflare:ro
     environment:
       DATA_DIR: /data
       POSTGRES_PASSWORD: ${APP_PASSWORD}
@@ -50,9 +51,12 @@ services:
     # Entrypoint script in Dockerfile handles config creation and user switching
 
   web:
-    image: smz9hykx/homeserver-dashboard:latest@sha256:c2e014fbcaac9f8fe593f5b68943e04040bfff59be21ba5214ab2984723e2f97
+    image: smz9hykx/homeserver-dashboard:latest@sha256:fc58e0e79978b32246ba6c7a3176ffcb2095f099c8f4dab9372372e0ff9cb7e2
     restart: on-failure
     stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/cloudflare:/app/cloudflare-config
+      - ${APP_DATA_DIR}/homeserver:/app/homeserver-data:ro
     environment:
       # Server-only env vars (read by API routes, never exposed to client)
       ADMIN_BASE_URL: http://homeserver:6288
@@ -64,14 +68,44 @@ services:
         condition: service_started
     # No ports exposed - uses app_proxy instead
 
-  # Optional. Set CLOUDFLARE_TUNNEL_TOKEN and CLOUDFLARE_DOMAIN; route hostname to http://homeserver:6286 in Cloudflare.
+  # Optional. Set token and domain via dashboard UI or .env; route hostname to http://homeserver:6286 in Cloudflare.
+  # Uses alpine image with cloudflared downloaded at runtime to support reading token from file.
   cloudflared:
-    image: cloudflare/cloudflared:2025.2.1
+    image: alpine:3.20
     restart: on-failure
     stop_grace_period: 1m
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    volumes:
+      - ${APP_DATA_DIR}/cloudflare:/etc/cloudflared-config:ro
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        ARCH=$$(uname -m)
+        case "$$ARCH" in
+          x86_64) ARCH="amd64" ;;
+          aarch64) ARCH="arm64" ;;
+        esac
+        if ! command -v cloudflared >/dev/null 2>&1; then
+          echo "Downloading cloudflared for $$ARCH..."
+          wget -q -O /usr/local/bin/cloudflared "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$$ARCH"
+          chmod +x /usr/local/bin/cloudflared
+        fi
+        TOKEN=""
+        if [ -f /etc/cloudflared-config/token ] && [ -s /etc/cloudflared-config/token ]; then
+          TOKEN="$$(cat /etc/cloudflared-config/token)"
+        elif [ -n "$$CLOUDFLARE_TUNNEL_TOKEN" ]; then
+          TOKEN="$$CLOUDFLARE_TUNNEL_TOKEN"
+        fi
+        if [ -n "$$TOKEN" ]; then
+          echo "Starting Cloudflare tunnel..."
+          exec /usr/local/bin/cloudflared tunnel --no-autoupdate run --token "$$TOKEN"
+        else
+          echo "No Cloudflare tunnel token found. Sleeping..."
+          sleep infinity
+        fi
     environment:
-      TUNNEL_LOGLEVEL: info
+      CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
     depends_on:
       homeserver:
         condition: service_started
