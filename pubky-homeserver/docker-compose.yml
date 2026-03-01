@@ -23,7 +23,7 @@ services:
       retries: 5
 
   homeserver:
-    image: smz9hykx/pubky-homeserver:latest@sha256:d33a7c1b566aad1f27276ee434007d3498aa6c9f0e0e20059a703a2feb86b186
+    image: smz9hykx/pubky-homeserver:latest@sha256:93e739fa9b85b7aa860c04e68d68b7be26c2a6866849c7a0e3e3ff86ca38e328
     restart: on-failure
     stop_grace_period: 1m
     volumes:
@@ -51,7 +51,7 @@ services:
     # Entrypoint script in Dockerfile handles config creation and user switching
 
   web:
-    image: smz9hykx/homeserver-dashboard:latest@sha256:fc58e0e79978b32246ba6c7a3176ffcb2095f099c8f4dab9372372e0ff9cb7e2
+    image: smz9hykx/homeserver-dashboard:latest@sha256:a594a8767080b3116caf1b4d1a217a5381da503b71564dbc74ada7fd20bd6010
     restart: on-failure
     stop_grace_period: 1m
     volumes:
