@@ -26,6 +26,20 @@ services:
     image: smz9hykx/pubky-homeserver:latest@sha256:93e739fa9b85b7aa860c04e68d68b7be26c2a6866849c7a0e3e3ff86ca38e328
     restart: on-failure
     stop_grace_period: 1m
+    # Tee stdout+stderr of the homeserver into /data/homeserver.log while
+    # keeping `docker logs` working. A FIFO + background `tee` lets the
+    # original entrypoint.sh remain PID 1 via `exec`, so SIGTERM still
+    # reaches the homeserver binary cleanly. The shared /data volume is also
+    # bind-mounted into the web (dashboard) container so it can read the
+    # file to render the Logs tab.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        rm -f /tmp/log-fifo
+        mkfifo /tmp/log-fifo
+        tee -a /data/homeserver.log < /tmp/log-fifo &
+        exec /usr/local/bin/entrypoint.sh > /tmp/log-fifo 2>&1
     volumes:
       - ${APP_DATA_DIR}/homeserver:/data
       - ${APP_DATA_DIR}/cloudflare:/etc/pubky-cloudflare:ro
@@ -48,7 +62,6 @@ services:
       timeout: 10s
       retries: 20
       start_period: 120s
-    # Entrypoint script in Dockerfile handles config creation and user switching
 
   web:
     image: smz9hykx/homeserver-dashboard:latest@sha256:a918a962638e3a8d91f410a3ab6af7bc6f1834caa8f1af58fd8f11c82eb7af71
