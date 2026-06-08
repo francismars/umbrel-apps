@@ -34,7 +34,7 @@ services:
       - ${APP_DATA_DIR}/homeserver:/data
 
   homeserver:
-    image: synonymsoft/homeserver:4fc2294bfe40e4696cc27bbdf3838917cb8d11c6
+    image: synonymsoft/homeserver:f90548c7531ebdf83f14dbe209eb5d9401c27244
     restart: on-failure
     stop_grace_period: 1m
     # Tee stdout+stderr of the homeserver into /data/homeserver.log while
